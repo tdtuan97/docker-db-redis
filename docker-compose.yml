@@ -1,0 +1,36 @@
+version: '3'
+services:
+  mysql:
+    image: mysql:8.1
+    container_name: mysql
+    command: [ 'mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci' ]
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "${MYSQL_PORT}:3306"
+    env_file:
+      - .env
+    environment:
+      MYSQL_DATABASE: '${MYSQL_DATABASE}'
+      MYSQL_ROOT_USER: '${MYSQL_ROOT_USER}'
+      MYSQL_ROOT_PASSWORD: '${MYSQL_ROOT_PASSWORD}'
+      MYSQL_USER: '${MYSQL_USER}'
+      MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
+      SERVICE_NAME: mysql8
+    volumes:
+      - ./mysql/my.cnf:/etc/mysql/my.cnf
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db_data/:/var/lib/mysql
+      - ./backup/:/backup/
+
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis
+    restart: always
+    command: /bin/sh -c "redis-server --requirepass $$REDIS_PASSWORD"
+    ports:
+      - "${REDIS_PORT}:6379"
+    env_file:
+      - .env
+    volumes:
+      - ./cache:/data
